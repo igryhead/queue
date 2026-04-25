@@ -1,6 +1,9 @@
 import tkinter as tk
 from tkinter import messagebox
-import queue_module as queue
+import python_module
+import queue_module
+
+queue = python_module
 
 root = tk.Tk()
 root.title("Очередь")
@@ -15,6 +18,36 @@ notify_var = tk.BooleanVar(value=True)
 check = tk.Checkbutton(root, text="Показывать уведомления", variable=notify_var)
 check.pack()
 
+def switch_module():
+    global queue
+    saved = queue.get_all()
+
+    if module_var.get() == "python":
+        queue = python_module
+    else:
+        queue = queue_module
+
+    queue.clear()
+    for v in saved:
+        queue.enqueue(v)
+
+    draw_queue()
+
+
+module_frame = tk.Frame(root)
+module_frame.pack(pady=5)
+
+module_var = tk.StringVar(value="python")
+
+tk.Label(module_frame, text="Модуль:").pack(side=tk.LEFT)
+tk.Radiobutton(
+    module_frame, text="Python", variable=module_var,
+    value="python", command=switch_module
+).pack(side=tk.LEFT, padx=5)
+tk.Radiobutton(
+    module_frame, text="C++", variable=module_var,
+    value="dll", command=switch_module
+).pack(side=tk.LEFT, padx=5)
 
 def draw_queue():
     canvas.delete("all")
@@ -27,13 +60,12 @@ def draw_queue():
         canvas.create_line(x + 60, 100, x + 70, 100, arrow=tk.LAST)
         x += 70
 
+    
     canvas.create_text(
-        350,
-        30,
-        text=f"Размер очереди: {queue.size()}",
+        350, 30,
+        text=f"Размер очереди: {queue.size()}  ",
         font=("Arial", 14)
     )
-
 
 def enqueue():
     try:
@@ -90,7 +122,6 @@ def remove_equal():
             messagebox.showinfo("Удалено", f"Удалено элементов: {removed}")
     except:
         messagebox.showerror("Ошибка", "Введите число")
-
 
 frame = tk.Frame(root)
 frame.pack(pady=10)
