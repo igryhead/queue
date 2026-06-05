@@ -18,13 +18,20 @@ notify_var = tk.BooleanVar(value=True)
 check = tk.Checkbutton(root, text="Показывать уведомления", variable=notify_var)
 check.pack()
 
+
 def switch_module():
     global queue
     saved = queue.get_all()
 
-    if module_var.get() == "python":
+    mode = module_var.get()
+
+    if mode == "python":
         queue = python_module
-    else:
+    elif mode == "cpp":
+        queue_module.use_cpp()
+        queue = queue_module
+    elif mode == "stl":
+        queue_module.use_stl()
         queue = queue_module
 
     queue.clear()
@@ -41,13 +48,23 @@ module_var = tk.StringVar(value="python")
 
 tk.Label(module_frame, text="Модуль:").pack(side=tk.LEFT)
 tk.Radiobutton(
-    module_frame, text="Python", variable=module_var,
-    value="python", command=switch_module
+    module_frame, text="Python",
+    variable=module_var, value="python",
+    command=switch_module
 ).pack(side=tk.LEFT, padx=5)
+
 tk.Radiobutton(
-    module_frame, text="C++", variable=module_var,
-    value="dll", command=switch_module
+    module_frame, text="C++ (Дин. память)",
+    variable=module_var, value="cpp",
+    command=switch_module
 ).pack(side=tk.LEFT, padx=5)
+
+tk.Radiobutton(
+    module_frame, text="C++ (STL)",
+    variable=module_var, value="stl",
+    command=switch_module
+).pack(side=tk.LEFT, padx=5)
+
 
 def draw_queue():
     canvas.delete("all")
@@ -60,12 +77,12 @@ def draw_queue():
         canvas.create_line(x + 60, 100, x + 70, 100, arrow=tk.LAST)
         x += 70
 
-    
     canvas.create_text(
         350, 30,
-        text=f"Размер очереди: {queue.size()}  ",
+        text=f"Размер очереди: {queue.size()}",
         font=("Arial", 14)
     )
+
 
 def enqueue():
     try:
@@ -123,12 +140,13 @@ def remove_equal():
     except:
         messagebox.showerror("Ошибка", "Введите число")
 
+
 frame = tk.Frame(root)
 frame.pack(pady=10)
 
-tk.Button(frame, text="Добавить", width=12, command=enqueue).grid(row=0, column=0)
-tk.Button(frame, text="Удалить", width=12, command=dequeue).grid(row=0, column=1)
-tk.Button(frame, text="Очистить", width=12, command=clear).grid(row=0, column=2)
+tk.Button(frame, text="Добавить",  width=12, command=enqueue).grid(row=0, column=0)
+tk.Button(frame, text="Удалить",   width=12, command=dequeue).grid(row=0, column=1)
+tk.Button(frame, text="Очистить",  width=12, command=clear).grid(row=0, column=2)
 
 tk.Button(frame, text="Удалить <", width=12, command=remove_less).grid(row=1, column=0)
 tk.Button(frame, text="Удалить >", width=12, command=remove_greater).grid(row=1, column=1)
