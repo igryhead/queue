@@ -2,14 +2,22 @@ import tkinter as tk
 from tkinter import messagebox
 import python_module
 import queue_module
+import pybind_module
 
 queue = python_module
 
 root = tk.Tk()
 root.title("Очередь")
 
-canvas = tk.Canvas(root, width=700, height=200)
-canvas.pack(pady=10)
+canvas_frame = tk.Frame(root)
+canvas_frame.pack(pady=10, fill=tk.X, padx=10)
+
+canvas = tk.Canvas(canvas_frame, width=700, height=200, bg="white")
+h_scroll = tk.Scrollbar(canvas_frame, orient=tk.HORIZONTAL, command=canvas.xview)
+canvas.configure(xscrollcommand=h_scroll.set)
+
+canvas.pack(side=tk.TOP, fill=tk.X)
+h_scroll.pack(side=tk.BOTTOM, fill=tk.X)
 
 entry = tk.Entry(root)
 entry.pack()
@@ -28,11 +36,9 @@ def switch_module():
     if mode == "python":
         queue = python_module
     elif mode == "cpp":
-        queue_module.use_cpp()
         queue = queue_module
-    elif mode == "stl":
-        queue_module.use_stl()
-        queue = queue_module
+    elif mode == "pybind":
+        queue = pybind_module
 
     queue.clear()
     for v in saved:
@@ -52,16 +58,14 @@ tk.Radiobutton(
     variable=module_var, value="python",
     command=switch_module
 ).pack(side=tk.LEFT, padx=5)
-
 tk.Radiobutton(
-    module_frame, text="C++ (Дин. память)",
+    module_frame, text="C++ (структуры)",
     variable=module_var, value="cpp",
     command=switch_module
 ).pack(side=tk.LEFT, padx=5)
-
 tk.Radiobutton(
-    module_frame, text="C++ (STL)",
-    variable=module_var, value="stl",
+    module_frame, text="C++ (STL pybind11)",
+    variable=module_var, value="pybind",
     command=switch_module
 ).pack(side=tk.LEFT, padx=5)
 
@@ -78,10 +82,13 @@ def draw_queue():
         x += 70
 
     canvas.create_text(
-        350, 30,
+        150, 30,
         text=f"Размер очереди: {queue.size()}",
         font=("Arial", 14)
     )
+
+    total_width = max(x + 40, 700)
+    canvas.configure(scrollregion=(0, 0, total_width, 200))
 
 
 def enqueue():
