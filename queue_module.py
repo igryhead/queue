@@ -1,60 +1,85 @@
-import ctypes
+class Node:
+    __slots__ = ('value', 'next')
 
-lib_cpp = ctypes.CDLL("./queue_cpp.dll")
-lib_stl = ctypes.CDLL("./queue_stl.dll") 
+    def __init__(self, value: int):
+        self.value = value
+        self.next = None
 
-lib_cpp.queueInit()
-lib_stl.queueInit()
+class Queue:
+    def __init__(self):
+        self.head = None
+        self.tail = None
+        self.count = 0
 
-_lib = lib_cpp
+q = Queue()
 
+def init():
+    q.head = None
+    q.tail = None
+    q.count = 0
 
-def use_cpp():
-    """Переключиться на реализацию с динамической памятью"""
-    global _lib
-    _lib = lib_cpp
+def size() -> int:
+    return q.count
 
+def enqueue(value: int):
+    n = Node(value)
+    if q.tail:
+        q.tail.next = n
+    else:
+        q.head = n
+    q.tail = n
+    q.count += 1
 
-def use_stl():
-    """Переключиться на реализацию с STL"""
-    global _lib
-    _lib = lib_stl
-
-
-def enqueue(x):
-    if _lib.queueEnqueue(x) == 0:
-        raise Exception("Недостаточно памяти")
-
-
-def dequeue():
-    val = ctypes.c_int()
-    if _lib.queueDequeue(ctypes.byref(val)) == 0:
-        raise Exception("Очередь пуста")
-    return val.value
-
+def dequeue() -> int:
+    if q.count == 0:
+        raise RuntimeError("Очередь пуста")
+    n = q.head
+    value = n.value
+    q.head = n.next
+    if not q.head:
+        q.tail = None
+    q.count -= 1
+    return value
 
 def clear():
-    _lib.queueClear()
-
-
-def size():
-    return _lib.queueSize()
-
+    q.head = None
+    q.tail = None
+    q.count = 0
 
 def get_all():
     data = []
-    for i in range(size()):
-        data.append(_lib.queueGetAt(i))
+    cur = q.head
+
+    while cur:
+        data.append(cur.value)
+        cur = cur.next
     return data
 
+def remove_less(val: int) -> int:
+    return _remove_by_condition(0, val)
 
-def remove_less(v):
-    return _lib.queueRemoveByCondition(0, v)
+def remove_greater(val: int) -> int:
+    return _remove_by_condition(1, val)
 
+def remove_equal(val: int) -> int:
+    return _remove_by_condition(2, val)
 
-def remove_greater(v):
-    return _lib.queueRemoveByCondition(1, v)
-
-
-def remove_equal(v):
-    return _lib.queueRemoveByCondition(2, v)
+def _remove_by_condition(mode: int, val: int) -> int:
+    original = q.count
+    removed = 0
+    
+    for _ in range(original):
+        if q.count == 0:
+            break
+        x = dequeue()
+        delete = (
+            (mode == 0 and x < val) or
+            (mode == 1 and x > val) or
+            (mode == 2 and x == val)
+        )
+        
+        if delete:
+            removed += 1
+        else:
+            enqueue(x)
+    return removed
